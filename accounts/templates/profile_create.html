@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="create-container">
+    {% csrf_token %}
+    <table>{{ form.as_p }}</table>
+    <input type="submit" value="Potvrdit" class="button">
+</form>
+
+{% endblock %}

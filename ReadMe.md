@@ -15,9 +15,6 @@
   - description
   - reviews
   - rating
-  - tags: 
-    - AAA
-    - Indie
   - price
   - stock
   

@@ -1,0 +1,50 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <title>Game World</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'viewer/styles.css">
+</head>
+<body>
+    {% if not view.is_popup %}
+    <header class="logo-container">
+        <a href="{% url 'index' %}"><img class="logo" alt="Game World logo" src="{% static 'logos/game-world-circle-no-bg.png"></a>
+    </header>
+    <nav class="log-in">
+        {% if request.user.is_authenticated %}
+            <p class="signet-as">Přihlášen jako: {{ request.user.username }}</p>
+        <span class="nav-button"><a href="{% url 'logout' %}" id="logout">Odhlásit se</a></span>
+            {% if request.user.profile %}
+                <span class="nav-button"><a href="{% url 'profile' pk=request.user.profile.pk %}" id="profile-button">Profil</a></span>
+            {% else %}
+                <span class="nav-button"><a href="{% url 'profile_create' pk=request.user.pk %}" id="create-profile-btn">Vytvořit profil</a></span>
+            {% endif %}
+        {% else %}
+            <span class="nav-button"><a href="{% url 'signup' %}" id="signup">Registrovat se</a></span>
+            <span class="nav-button"><a href="{% url 'login' %}" id="login">Přihlásit se</a></span>
+        {% endif %}
+        {% if request.user.is_superuser %}
+            <span class="nav-button"><a href="/admin/" id="Admin">Admin</a></span>
+        {% endif %}
+    </nav>
+    <nav class="nav-container">
+        <span class="navigate">PC games</span>
+        <span class="navigate">PS games</span>
+        <span class="navigate">X-box games</span>
+        <span class="navigate">Merchandise</span>
+        {% if user.is_authenticated and user.is_staff %}
+            <span class="nav-button"><a href="{% url 'administration">Administrace</a></span>
+        {% endif %}
+    </nav>
+    {% endif %}
+    <main class="article">
+        {% bock content %}
+        {% endblock %}
+    </main>
+    <footer>Copyright created by Marcel Jurčák 2024</footer>
+    <script src="{% static 'viewer/script.js' %}"></script>
+</body>
+</html>
