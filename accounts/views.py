@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm, CharField, EmailField, ImageField, ModelMultipleChoiceField, CheckboxSelectMultiple, \
@@ -172,3 +172,9 @@ def profile_edit(request):
 
     context = {'form': form, 'images': images}
     return render(request, 'profile_edit.html', context)
+
+
+def logout_view(request):
+    logout(request)
+    return redirect('index')
+

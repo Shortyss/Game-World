@@ -1,47 +1,50 @@
-{% load static %}
-
 <!DOCTYPE html>
 <html lang="cs">
 <head>
+    {% load static %}
     <title>Game World</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'viewer/styles.css">
+    <link rel="stylesheet" href="{% static 'viewer/styles.css' %}">
 </head>
 <body>
     {% if not view.is_popup %}
-    <header class="logo-container">
-        <a href="{% url 'index' %}"><img class="logo" alt="Game World logo" src="{% static 'logos/game-world-circle-no-bg.png"></a>
+    <header>
+        <div class="logo-container">
+            <a href="{% url 'index' %}"><img class="logo" alt="Game World logo" src="{% static 'logos/game-world-circle-no-bg.png' %}"></a>
+        </div>
+        <nav class="nav-container">
+            <div class="main-nav">
+                <a href="#" class="navigate" data-text="PC games">PC games</a>
+                <a href="#" class="navigate" data-text="PS games">PS games</a>
+                <a href="#" class="navigate" data-text="X-box games">X-box games</a>
+                <a href="#" class="navigate" data-text="Merchandise">Merchandise</a>
+                {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'administration' %}" class="navigate" data-text="Administrace">Administrace</a>
+                {% endif %}
+            </div>
+            <div class="auth-nav">
+                {% if request.user.is_authenticated %}
+                    <p class="signet-as">Přihlášen jako: {{ request.user.username }}</p>
+                    <a href="{% url 'logout' %}" class="nav-button" id="logout" data-text="Odhlásit se">Odhlásit se</a>
+                    {% if request.user.profile %}
+                        <a href="{% url 'profile' pk=request.user.profile.pk %}" class="nav-button" id="profile-button" data-text="Profil">Profil</a>
+                    {% else %}
+                        <a href="{% url 'profile_create' pk=request.user.pk %}" class="nav-button" id="create-profile-btn" data-text="Vytvořit profil">Vytvořit profil</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'signup' %}" class="nav-button" id="signup" data-text="Registrovat se">Registrovat se</a>
+                    <a href="{% url 'login' %}" class="nav-button" id="login" data-text="Přihlásit se">Přihlásit se</a>
+                {% endif %}
+                {% if request.user.is_superuser %}
+                    <a href="/admin/" class="nav-button" id="Admin" data-text="Admin">Admin</a>
+                {% endif %}
+            </div>
+        </nav>
     </header>
-    <nav class="log-in">
-        {% if request.user.is_authenticated %}
-            <p class="signet-as">Přihlášen jako: {{ request.user.username }}</p>
-        <span class="nav-button"><a href="{% url 'logout' %}" id="logout">Odhlásit se</a></span>
-            {% if request.user.profile %}
-                <span class="nav-button"><a href="{% url 'profile' pk=request.user.profile.pk %}" id="profile-button">Profil</a></span>
-            {% else %}
-                <span class="nav-button"><a href="{% url 'profile_create' pk=request.user.pk %}" id="create-profile-btn">Vytvořit profil</a></span>
-            {% endif %}
-        {% else %}
-            <span class="nav-button"><a href="{% url 'signup' %}" id="signup">Registrovat se</a></span>
-            <span class="nav-button"><a href="{% url 'login' %}" id="login">Přihlásit se</a></span>
-        {% endif %}
-        {% if request.user.is_superuser %}
-            <span class="nav-button"><a href="/admin/" id="Admin">Admin</a></span>
-        {% endif %}
-    </nav>
-    <nav class="nav-container">
-        <span class="navigate">PC games</span>
-        <span class="navigate">PS games</span>
-        <span class="navigate">X-box games</span>
-        <span class="navigate">Merchandise</span>
-        {% if user.is_authenticated and user.is_staff %}
-            <span class="nav-button"><a href="{% url 'administration">Administrace</a></span>
-        {% endif %}
-    </nav>
     {% endif %}
     <main class="article">
-        {% bock content %}
+        {% block content %}
         {% endblock %}
     </main>
     <footer>Copyright created by Marcel Jurčák 2024</footer>
