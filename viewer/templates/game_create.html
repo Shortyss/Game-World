@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="game-create">
+    <div class="left-section">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if form.instance.pk %}Upravit{% else %}Vytvořit{% endif %} hru</button>
+            <div class="right-section">
+                {% if form.instance.pk %}
+                    <h3>Existující obrázky</h3>
+                    {% for image in form.instance.images.all %}
+                        <div class="image-item">
+                            <img src="{{ image.image.url }}" width="250">
+                            <label>
+                                <input type="checkbox" name="delete_images" value="{{ image.id }}"> Smazat
+                            </label>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

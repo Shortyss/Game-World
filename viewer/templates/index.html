@@ -2,6 +2,207 @@
 
 {% block content %}
 <div class="content">
-
+    {% if request.user.is_authenticated %}
+        <div class="wishlist">
+            <h1 class="section-title">Seznam přání</h1>
+            {% if wishlist %}
+                <div class="game-grid">
+                   {% for game in wishlist %}
+                    <div class="game-card-wrapper">
+                        <a href="{% url 'game_detail' game.id %}" class="game-card">
+                            <div class="game-card-inner">
+                                <div class="game-card-front">
+                                    <div class="game-image-container">
+                                        {% with game.images.all as images %}
+                                            {% for image in images %}
+                                                <img src="{{ image.image.url }}" alt="{{ game.name }}" class="game-image" style="{% if not forloop.first %}display:none;{% endif %}">
+                                            {% endfor %}
+                                        {% endwith %}
+                                    </div>
+                                    <h2 class="game-title">{{ game.name }}</h2>
+                                    <p class="game-price">{{ game.price }} Kč</p>
+                                </div>
+                                <div class="game-card-back">
+                                    <p class="game-description">{{ game.description|truncatechars:360 }}</p>
+                                    <p class="game-release-date">Datum vydání: {{ game.release_date }}</p>
+                                </div>
+                            </div>
+                        </a>
+                        {% if user.is_superuser %}
+                        <div class="admin-actions">
+                            <a href="{% url 'game_update' game.id %}" class="admin-link">Upravit</a>
+                            <a href="{% url 'game_confirm_delete' game.id %}" class="admin-link">Smazat</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                <p><a href="{% url 'wishlist' %}">Zobrazit celý seznam přání</a></p>
+            {% else %}
+                <p>Tvůj seznam přání je prázdný.</p>
+            {% endif %}
+        </div>
+    {% endif %}
+    <div class="new-games">
+        <h1 class="section-title">Novinky</h1>
+        {% if new_releases %}
+            <div class="game-grid">
+               {% for game in new_releases %}
+                <div class="game-card-wrapper">
+                    <a href="{% url 'game_detail' game.id %}" class="game-card">
+                        <div class="game-card-inner">
+                            <div class="game-card-front">
+                                <div class="game-image-container">
+                                    {% with game.images.all as images %}
+                                        {% for image in images %}
+                                            <img src="{{ image.image.url }}" alt="{{ game.name }}" class="game-image" style="{% if not forloop.first %}display:none;{% endif %}">
+                                        {% endfor %}
+                                    {% endwith %}
+                                </div>
+                                <h2 class="game-title">{{ game.name }}</h2>
+                                <p class="game-price">{{ game.price }} Kč</p>
+                            </div>
+                            <div class="game-card-back">
+                                <p class="game-description">{{ game.description|truncatechars:360 }}</p>
+                                <p class="game-release-date">Datum vydání: {{ game.release_date }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% if user.is_superuser %}
+                    <div class="admin-actions">
+                        <a href="{% url 'game_update' game.id %}" class="admin-link">Upravit</a>
+                        <a href="{% url 'game_confirm_delete' game.id %}" class="admin-link">Smazat</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <p><a href="{% url 'new_releases' %}">Zobrazit všechny novinky</a></p>
+        {% else %}
+            <p>Momentálně nejsou dostupné žádně novinky.</p>
+        {% endif %}
+    </div>
+    <div class="pre-order">
+        <h1 class="section-title">Předobjednávky</h1>
+        {% if pre_orders %}
+            <div class="game-grid">
+               {% for game in pre_orders %}
+                <div class="game-card-wrapper">
+                    <a href="{% url 'game_detail' game.id %}" class="game-card">
+                        <div class="game-card-inner">
+                            <div class="game-card-front">
+                                <div class="game-image-container">
+                                    {% with game.images.all as images %}
+                                        {% for image in images %}
+                                            <img src="{{ image.image.url }}" alt="{{ game.name }}" class="game-image" style="{% if not forloop.first %}display:none;{% endif %}">
+                                        {% endfor %}
+                                    {% endwith %}
+                                </div>
+                                <h2 class="game-title">{{ game.name }}</h2>
+                                <p class="game-price">{{ game.price }} Kč</p>
+                            </div>
+                            <div class="game-card-back">
+                                <p class="game-description">{{ game.description|truncatechars:360 }}</p>
+                                <p class="game-release-date">Datum vydání: {{ game.release_date }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% if user.is_superuser %}
+                    <div class="admin-actions">
+                        <a href="{% url 'game_update' game.id %}" class="admin-link">Upravit</a>
+                        <a href="{% url 'game_confirm_delete' game.id %}" class="admin-link">Smazat</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <p><a href="{% url 'pre_orders' %}">Zobrazit všechny předobjednávky</a></p>
+        {% else %}
+            <p>Momentálně nejsou dostupné žádně předobjednávky.</p>
+        {% endif %}
+    </div>
+    <div class="top-games">
+        <h1 class="section-title">Oblíbené hry</h1>
+        {% if bestsellers %}
+            <div class="game-grid">
+               {% for game in bestsellers %}
+                <div class="game-card-wrapper">
+                    <a href="{% url 'game_detail' game.id %}" class="game-card">
+                        <div class="game-card-inner">
+                            <div class="game-card-front">
+                                <div class="game-image-container">
+                                    {% with game.images.all as images %}
+                                        {% for image in images %}
+                                            <img src="{{ image.image.url }}" alt="{{ game.name }}" class="game-image" style="{% if not forloop.first %}display:none;{% endif %}">
+                                        {% endfor %}
+                                    {% endwith %}
+                                </div>
+                                <h2 class="game-title">{{ game.name }}</h2>
+                                <p class="game-price">{{ game.price }} Kč</p>
+                            </div>
+                            <div class="game-card-back">
+                                <p class="game-description">{{ game.description|truncatechars:360 }}</p>
+                                <p class="game-release-date">Datum vydání: {{ game.release_date }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% if user.is_superuser %}
+                    <div class="admin-actions">
+                        <a href="{% url 'game_update' game.id %}" class="admin-link">Upravit</a>
+                        <a href="{% url 'game_confirm_delete' game.id %}" class="admin-link">Smazat</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <p><a href="{% url 'bestsellers' %}">Zobrazit všechny nejprodávanější hry</a></p>
+        {% else %}
+            <p>Momentálně nejsou dostupné žádně nejprodávanější hry.</p>
+        {% endif %}
+    </div>
+    <div class="sale">
+        <h1 class="section-title">Akce a slevy</h1>
+        {% if sales %}
+            <div class="game-grid">
+               {% for game in sales %}
+                <div class="game-card-wrapper">
+                    <a href="{% url 'game_detail' game.id %}" class="game-card">
+                        <div class="game-card-inner">
+                            <div class="game-card-front">
+                                <div class="game-image-container">
+                                    {% with game.images.all as images %}
+                                        {% for image in images %}
+                                            <img src="{{ image.image.url }}" alt="{{ game.name }}" class="game-image" style="{% if not forloop.first %}display:none;{% endif %}">
+                                        {% endfor %}
+                                    {% endwith %}
+                                </div>
+                                {% if game.discounts.exists %}
+                                    {% for discount in game.discounts.all %}
+                                        <h2 class="game-title">{{ game.name }}</h2>
+                                        <p class="game-price">Sleva: {{ discount.get_discount_percent }} %</p>
+                                        <p class="game-price">{{ discount.discount_price }} Kč</p>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <div class="game-card-back">
+                                <p class="game-description">{{ game.description|truncatechars:360 }}</p>
+                                <p class="game-release-date">Datum vydání: {{ game.release_date }}</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% if user.is_superuser %}
+                    <div class="admin-actions">
+                        <a href="{% url 'game_update' game.id %}" class="admin-link">Upravit</a>
+                        <a href="{% url 'game_confirm_delete' game.id %}" class="admin-link">Smazat</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <p><a href="{% url 'sales' %}">Zobrazit všechny akce a slevy</a></p>
+        {% else %}
+            <p>Momentálně nemáme žádné akce a slevy.</p>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content">
+    <div class="cart-container">
+        <h2>Košík</h2>
+        {% if cart_items %}
+            <ul>
+                {% for item in cart_items %}
+                    <li>
+                        <div class="cart-item-info">
+                            <div>
+                                <p>{{ item.game.name }}</p>
+                                <p>{{ item.quantity }} ks - {{ item.game.price }} Kč</p>
+                            </div>
+                        </div>
+                        <form action="{% url 'remove_from_cart' item.game.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit">Odstranit</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+            <p class="total-price">Celková cena: {{ total_price }} Kč</p>
+            <a href="{% url 'checkout' %}" class="checkout-button">Pokračovat k platbě</a>
+        {% else %}
+            <p>Váš košík je prázdný.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

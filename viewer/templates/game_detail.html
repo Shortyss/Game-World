@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="game-detail">
+    <h1>{{ game.name }}</h1>
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'toggle_wishlist' game.id %}" id="wishlist-form">
+            {% csrf_token %}
+            <button type="submit" class="wishlist-icon">
+                {% if game in wishlist.games.all %}
+                    <i class="fas fa-heart filled"></i>
+                {% else %}
+                    <i class="far fa-heart empty"></i>
+                {% endif %}
+            </button>
+        </form>
+    {% endif %}
+
+    <div class="main-media-container">
+        <div class="main-media">
+            {% if game.images.first %}
+                <img src="{{ game.images.first.image.url }}" alt="{{ game.name }}" id="main-image" class="detail-image">
+            {% else %}
+                <p>Žádný obrázek není k dispozici.</p>
+            {% endif %}
+        </div>
+        <button id="prev-arrow" class="arrow">&lt;</button>
+        <button id="next-arrow" class="arrow">&gt;</button>
+    </div>
+
+    <div class="media-thumbnails">
+        {% for image in game.images.all %}
+            <img src="{{ image.image.url }}" alt="{{ game.name }}" class="thumbnail" data-url="{{ image.image.url }}">
+        {% endfor %}
+        {% for video in game.videos.all %}
+            <img src="https://img.youtube.com/vi/{{ video.video_url|slice:'-11:-1' }}/0.jpg" alt="{{ video.title }}" class="thumbnail" onclick="showMainMedia('{{ video.video_url }}', true)">
+        {% endfor %}
+    </div>
+
+    <p class="game-description">{{ game.description }}</p>
+
+    <div class="game-price">Cena: {{ game.price }} Kč</div>
+    {% if game.discounts.exists %}
+        {% for discount in game.discounts.all %}
+            <div class="game-price">Cena ve slevě: {{ discount.discount_price }} Kč</div>
+            <p class="game-price">Sleva: {{ discount.get_discount_percent }} %</p>
+        {% endfor %}
+    {% endif %}
+
+    <div class="buy-btn">
+        {% if game.quantity > 0 %}
+            <form action="{% url 'add_to_cart' game.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="action_button">Přídat do košíku</button>
+            </form>
+        {% else %}
+            <button class="non-action-button">Momentálně nedostupné</button>
+        {% endif %}
+    </div>
+
+    <div class="game-content">
+        <div class="left-content">
+            <p class="game-release-date">Datum vydání: {{ game.release_date }}</p>
+            <p>Platformy:
+                {% for platform in game.platform.all %}
+                    <a href="{% url 'games_by_platform' platform.type_platform %}">{{ platform.type_platform }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            <p>Žánry:
+                {% for genre in game.genres.all %}
+                    <a href="{% url 'games_by_genre' genre.name %}">{{ genre.name }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            <p>Herní módy:
+                {% for mode in game.game_mode.all %}
+                    <a href="{% url 'games_by_mode' mode.name %}">{{ mode.name }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            <p>Vývojář:
+                {% for developer in game.developer.all %}
+                    <a href="{% url 'games_by_developer' developer.name %}">{{ developer.name }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+            <p>Vydavatel:
+                {% for publisher in game.publisher.all %}
+                    <a href="{% url 'games_by_publisher' publisher.name %}">{{ publisher.name }}</a>{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </p>
+        </div>
+
+        <div class="right-content">
+            <div class="system-requirements">
+                <div class="requirements-column">
+                    <h2>Minimální požadavky</h2>
+                    <p>OS: {{ game.min_configuration_os.name|default:"Zatím neuvedeno" }}</p>
+                    <p>CPU: {{ game.min_configuration_cpu.name|default:"Zatím neuvedeno" }}</p>
+                    <p>RAM: {{ game.min_configuration_ram.name|default:"Zatím neuvedeno" }}</p>
+                    <p>GPU: {{ game.min_configuration_gpu.name|default:"Zatím neuvedeno" }}</p>
+                    <p>HDD: {{ game.min_configuration_hdd.name|default:"Zatím neuvedeno" }}</p>
+                    <p>Další poznámky: {{ game.min_additional_notes.note|default:"Zatím neuvedeno" }}</p>
+                </div>
+
+                <div class="requirements-column">
+                    <h2>Doporučené požadavky</h2>
+                    <p>OS: {{ game.recommended_configuration_os.name|default:"Zatím neuvedeno" }}</p>
+                    <p>CPU: {{ game.recommended_configuration_cpu.name|default:"Zatím neuvedeno" }}</p>
+                    <p>RAM: {{ game.recommended_configuration_ram.name|default:"Zatím neuvedeno" }}</p>
+                    <p>GPU: {{ game.recommended_configuration_gpu.name|default:"Zatím neuvedeno" }}</p>
+                    <p>HDD: {{ game.recommended_configuration_hdd.name|default:"Zatím neuvedeno" }}</p>
+                    <p>Další poznámky: {{ game.recommended_configuration_additional_notes.note|default:"Zatím neuvedeno" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

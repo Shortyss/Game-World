@@ -1,7 +1,10 @@
+from django.utils import timezone
+from email.policy import default
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Model, CharField, ManyToManyField, ForeignKey, CASCADE, DateField, DecimalField, TextField, \
-    DO_NOTHING, SET_NULL, IntegerField, DateTimeField, PositiveIntegerField
+    DO_NOTHING, SET_NULL, IntegerField, DateTimeField, PositiveIntegerField, ImageField, BooleanField
 from multiupload.fields import MultiFileField
 
 
@@ -109,18 +112,17 @@ class InvalidPurchaseAmountException(Exception):
 
 class Game(Model):
     name = CharField(max_length=300, null=False, blank=False, verbose_name='Název')
-    platform = ManyToManyField(Platform, blank=True, related_name='platform_games',
+    platform = ManyToManyField(Platform, blank=True, related_name='games_by_developer',
                                verbose_name='Platforma')
-    genres = ManyToManyField(Genre, blank=True, related_name='genres_of_game',
+    genres = ManyToManyField(Genre, blank=True, related_name='games_by_genre',
                              verbose_name='Žánr')
-    game_mode = ManyToManyField(GameMode, blank=True, related_name='mode_of_game',
+    game_mode = ManyToManyField(GameMode, blank=True, related_name='games_by_mode',
                                 verbose_name='Herní mód')
     release_date = DateField(null=True, blank=True, verbose_name='Datum vydání')
-    developer = ManyToManyField(Developer, blank=True, related_name='developer_of_game',
+    developer = ManyToManyField(Developer, blank=True, related_name='games_by_developer',
                                 verbose_name='Vývojář')
-    publisher = ManyToManyField(Publisher, blank=True, related_name='publisher_of_game',
+    publisher = ManyToManyField(Publisher, blank=True, related_name='games_by_publisher',
                                 verbose_name='Vydavatel')
-    images = MultiFileField(min_num=1, max_num=10, max_file_size=1920 * 1080 * 5, required=False)
     min_configuration_os = ForeignKey(OS, on_delete=SET_NULL, null=True, blank=True, related_name='min_os',
                                       verbose_name='Minimální operační systém')
     min_configuration_cpu = ForeignKey(CPU, on_delete=SET_NULL, null=True, blank=True, related_name='min_cpu',
@@ -167,8 +169,34 @@ class Game(Model):
         self.quantity += amount
         self.save()
 
+    def get_images(self):
+        return GameImage.objects.filter(game=self)
+
     def __str__(self):
         return self.name
+
+
+class GameImage(Model):
+    game = ForeignKey(Game, related_name='images', on_delete=DO_NOTHING)
+    image = ImageField(upload_to='viewer/static/game_images/')
+
+    def save(self, *args, **kwargs):
+        self.image.name = self.image.name.lower().replace(" ", "")
+        super().save(*args, **kwargs)
+
+
+class GameVideo(models.Model):
+    game = models.ForeignKey(Game, related_name='videos', on_delete=models.CASCADE)
+    video_url = models.URLField(verbose_name='YouTube URL')
+    title = models.CharField(max_length=255, blank=True, null=True)
+
+
+class Wishlist(Model):
+    user = ForeignKey(User, on_delete=CASCADE, related_name='wishlist')
+    games = ManyToManyField('Game', related_name='wishlists')
+
+    def __str__(self):
+        return f"{self.user.username} Wishlist"
 
 
 class Rating(Model):
@@ -204,27 +232,85 @@ class DLC(Model):
 
 class Cart(Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_cart_items')
-    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='cart_items')
-    quantity = models.PositiveIntegerField(default=1)
+    created_at = DateTimeField(auto_now_add=True)
 
-    def update_quantity(self, amount):
-        if amount < 0:
-            raise InvalidPurchaseAmountException("Množství musí být větší než 0")
-        if amount == 0:
-            self.delete()
+    def add_game(self, game):
+        cart_item, created = CartItem.objects.get_or_create(cart=self, game=game)
+        if not created:
+            cart_item.quantity += 1
+            cart_item.save()
+
+    def remove_game(self, game):
+        cart_item = CartItem.objects.filter(cart=self, game=game).first()
+        if cart_item.quantity > 1:
+            cart_item.quantity -= 1
+            cart_item.save()
         else:
-            self.quantity = amount
-            self.save()
+            cart_item.delete()
+
+    def clear_cart(self):
+        CartItem.objects.filter(cart=self).delete()
 
     def __str__(self):
         return f'{self.user.username} - {self.game.name} - {self.quantity}'
+
+
+class CartItem(Model):
+    cart = ForeignKey(Cart, on_delete=CASCADE, related_name='CartItem')
+    game = ForeignKey(Game, on_delete=CASCADE, related_name='GameItem')
+    quantity = PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.game.name} x {self.quantity}"
 
 
 class Purchase(Model):
-    game = ForeignKey(Game, on_delete=CASCADE, related_name='purchases', verbose_name='Hra')
     user = ForeignKey(User, on_delete=CASCADE, related_name='user_purchases', verbose_name='Zákazník')
-    quantity = PositiveIntegerField(verbose_name='Množství')
     purchase_date = DateTimeField(auto_now_add=True, verbose_name='Datum nákupu')
+    total_price = DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    payment_id = CharField(max_length=100, blank=True, null=True)
+    is_paid = BooleanField(default=False)
+
+    def calculate_total(self):
+        total = sum(item.game.price * item.quantity for item in self.purchase_items.all())
+        self.total_price = total
+        self.save()
+
+    def remove_purchased_items(self):
+        removed = False
+        if not self.is_paid:
+            for item in self.purchase_items.all():
+                if PurchaseItem.objects.filter(purchase__user=self.user, is_paid=True).exists():
+                    item.delete()
+                    removed = True
+            self.calculate_total()
+        return removed
 
     def __str__(self):
         return f'{self.user.username} - {self.game.name} - {self.quantity}'
+
+
+class PurchaseItem(Model):
+    purchase = ForeignKey(Purchase, on_delete=CASCADE, related_name='purchase_items')
+    game = ForeignKey(Game, on_delete=CASCADE)
+    quantity = PositiveIntegerField()
+
+    def __str__(self):
+        return f"{self.game.name} x {self.quantity}"
+
+
+class Discount(Model):
+    game = ForeignKey(Game, on_delete=CASCADE, related_name='discounts')
+    discount_price = DecimalField(max_digits=10, decimal_places=2)
+    start_date = DateField()
+    end_date = DateField(null=True, blank=True)
+
+    def is_active(self):
+        now = timezone.now().date()
+        return self.start_date <= now and (not self.end_date or self.end_date >= now)
+
+    def get_discount_percent(self):
+        if self.game.price > 0:
+            return round((self.game.price - self.discount_price) / self.game.price * 100, 2)
+        return 0
+

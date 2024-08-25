@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="games">
+    <h1 class="platform_type">{{ platform }} hry</h1>
+    <div class="game-grid">
+        {% for game in games %}
+        <div class="game-card-wrapper">
+            <a href="{% url 'game_detail' game.id %}" class="game-card">
+                <div class="game-card-inner">
+                    <div class="game-card-front">
+                        <div class="game-image-container">
+                            {% with game.images.all as images %}
+                                {% for image in images %}
+                                    <img src="{{ image.image.url }}" alt="{{ game.name }}" class="game-image" style="{% if not forloop.first %}display:none;{% endif %}">
+                                {% endfor %}
+                            {% endwith %}
+                        </div>
+                        <h2 class="game-title">{{ game.name }}</h2>
+                        <p class="game-price">{{ game.price }} Kč</p>
+                    </div>
+                    <div class="game-card-back">
+                        <p class="game-description">{{ game.description|truncatechars:360 }}</p>
+                        <p class="game-release-date">Datum vydání: {{ game.release_date }}</p>
+                    </div>
+                </div>
+            </a>
+            {% if user.is_superuser %}
+            <div class="admin-actions">
+                <a href="{% url 'game_update' game.id %}" class="admin-link">Upravit</a>
+                <a href="{% url 'game_confirm_delete' game.id %}" class="admin-link">Smazat</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="content">
+    <div class="checkout-container">
+        <h2>Pokladna</h2>
+        <p>Celková cena: {{ purchase.total_price }} Kč</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form }}
+            <button type="submit" class="button">Potvrdit platbu</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

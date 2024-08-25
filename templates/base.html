@@ -5,6 +5,8 @@
     <title>Game World</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <link rel="stylesheet" href="{% static 'viewer/styles.css' %}">
 </head>
 <body>
@@ -15,13 +17,14 @@
         </div>
         <nav class="nav-container">
             <div class="main-nav">
-                <a href="#" class="navigate" data-text="PC games">PC games</a>
-                <a href="#" class="navigate" data-text="PS games">PS games</a>
-                <a href="#" class="navigate" data-text="X-box games">X-box games</a>
-                <a href="#" class="navigate" data-text="Merchandise">Merchandise</a>
+                <a href="{% url 'games_pc' %}" class="navigate" data-text="PC games">PC games</a>
+                <a href="{% url 'games_ps' %}" class="navigate" data-text="PS games">PS games</a>
+                <a href="{% url 'games_xbox' %}" class="navigate" data-text="X-box games">X-box games</a>
+                <a href="{% url 'wishlist' %}" class="navigate" data-text="Wishlist">Wishlist</a>
                 {% if user.is_authenticated and user.is_staff %}
                     <a href="{% url 'administration' %}" class="navigate" data-text="Administrace">Administrace</a>
                 {% endif %}
+                <a href="{% url 'cart' %}" class="navigate" data-text="Košík">Košík</a>
             </div>
             <div class="auth-nav">
                 {% if request.user.is_authenticated %}
