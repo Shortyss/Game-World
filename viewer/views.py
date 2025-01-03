@@ -1,13 +1,24 @@
+import json
+from turtle import forward
+
+from django_addanother.views import CreatePopupMixin
+from django_addanother.widgets import AddAnotherWidgetWrapper
+
+from .models import *
+
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Sum
-from django.forms import ModelForm, ClearableFileInput, ModelMultipleChoiceField, CheckboxSelectMultiple
+from django.forms import ModelForm, ClearableFileInput, CharField, CheckboxSelectMultiple, Textarea, SelectMultiple, \
+    Select
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import View
+from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, UpdateView, DeleteView, ListView
+from dal import autocomplete
 
-from .models import *
 import random
 
 
@@ -20,8 +31,8 @@ def index(request):
     new_releases = Game.objects.filter(release_date__lte=timezone.now().date(),
                                        release_date__gte=nine_months_ago).order_by('-release_date')[:6]
     pre_orders = Game.objects.filter(release_date__gt=timezone.now().date()).order_by('release_date')[:6]
-    bestsellers = Game.objects.annotate(total_sold=Sum('purchaseitem__quantity')).order_by('-total_sold')[:6]
-    sales = Game.objects.filter(discounts__in=active_discounts).distinct()[:6]
+    bestsellers = Game.objects.annotate(total_sold=Sum('platform_versions__purchaseitem__quantity')).order_by('-total_sold')[:6]
+    sales = Game.objects.filter(platform_versions__discounts__in=active_discounts).distinct()[:6]
     if request.user.is_authenticated:
         wishlist, created = Wishlist.objects.get_or_create(user=request.user)
         games = list(wishlist.games.all())
@@ -73,13 +84,6 @@ class DiscountUpdateView(LoginRequiredMixin, UpdateView):
     template_name = 'discount_add.html'
     model = Discount
     form_class = DiscountForm
-    success_url = reverse_lazy('discount_list')
-    permission_required = 'administrator'
-
-
-class DiscountDeleteView(LoginRequiredMixin, DeleteView):
-    template_name = 'discount_confirm_delete.html'
-    model = Discount
     success_url = reverse_lazy('discount_list')
     permission_required = 'administrator'
 
@@ -141,12 +145,49 @@ class CustomClearableFileInput(ClearableFileInput):
     allow_multiple_selected = True
 
 
+class GenreAutocomplete(autocomplete.Select2QuerySetView):
+    def get_queryset(self):
+        qs = Genre.objects.all()
+        print(f"žánry: {qs}")
+        if self.q:
+            qs = qs.filter(name__icontains=self.q)
+        return qs
+
+
 class GameModelForm(ModelForm):
     images = MultiFileField(min_num=1, max_num=10, max_file_size=1920 * 1080 * 10, required=False)
+    video_urls = CharField(widget=Textarea, required=False,
+                                 help_text="Vlož odkazy na videa oddělené čárkou")
 
     class Meta:
         model = Game
         fields = '__all__'
+        widgets = {
+            'genres': AddAnotherWidgetWrapper(
+                SelectMultiple,
+                reverse_lazy('genres_create')
+            ),
+            'game_mode': AddAnotherWidgetWrapper(
+                SelectMultiple,
+                reverse_lazy('game_mode_create')
+            ),
+            'developer': AddAnotherWidgetWrapper(
+                SelectMultiple,
+                reverse_lazy('developer_create')
+            ),
+            'publisher': AddAnotherWidgetWrapper(
+                SelectMultiple,
+                reverse_lazy('publisher_create')
+            ),
+            'min_configuration_os': AddAnotherWidgetWrapper(
+                SelectMultiple,
+                reverse_lazy('os_create')
+            ),
+            'min_configuration_cpu': AddAnotherWidgetWrapper(
+                SelectMultiple,
+                reverse_lazy('cpu_create')
+            ),
+        }
 
     def clean_name(self):
         cleaned_data = super().clean()
@@ -159,6 +200,7 @@ class GameModelForm(ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         images = self.cleaned_data.get('images')
+        video_urls = self.cleaned_data.get('video_urls', "").split(',')
 
         if commit:
             instance.save()
@@ -168,12 +210,52 @@ class GameModelForm(ModelForm):
             for image in images:
                 GameImage.objects.create(game=instance, image=image)
 
+        for url in video_urls:
+            if url.strip():
+                GameVideo.objects.create(game=instance, video_url=url.strip())
+
         return instance
 
 
 def bestsellers_view(request):
     bestsellers = Game.objects.annotate(total_sold=Sum('purchaseitem__quantity')).order_by('-total_sold')
     return render(request, 'bestsellers.html', {'bestsellers': bestsellers})
+
+
+class GenericCreateView(LoginRequiredMixin, CreateView, CreatePopupMixin):
+    template_name = 'generic_create.html'
+    form_class = None
+    success_url = reverse_lazy('administration')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['object_list'] = self.model.objects.all()
+        context['update_url_name'] = f'{self.model._meta.model_name}_update'
+        context['delete_url_name'] = f'{self.model._meta.model_name}_delete'
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        return HttpResponse(
+            '<script>'
+            'opener.dismissAddAnotherPopup(window, "%s", "%s");'
+            'opener.refreshGenres();'
+            '</script>' % (self.object.pk, self.object)
+        )
+
+
+class GenericUpdateView(LoginRequiredMixin, UpdateView):
+    template_name = 'generic_create.html'
+    form_class = None
+    success_url = reverse_lazy('administration')
+
+
+class GenericDeleteView(LoginRequiredMixin, DeleteView):
+    template_name = 'confirm_delete.html'
+
+    def get_success_url(self):
+        return reverse_lazy(f'{self.model._meta.model_name}_create')
 
 
 class GameCreateView(LoginRequiredMixin, CreateView):
@@ -204,13 +286,6 @@ class GameUpdateVIew(LoginRequiredMixin, UpdateView):
         return response
 
 
-class GameDeleteView(LoginRequiredMixin, DeleteView):
-    template_name = 'game_confirm_delete.html'
-    model = Game
-    success_url = reverse_lazy('games')
-    permission_required = 'administration'
-
-
 class GamesView(View):
     def get(self, request):
         game_list = Game.objects.all()
@@ -228,21 +303,180 @@ class GamesByPlatformView(View):
 
 
 def game(request, pk):
-    game_object = Game.objects.get(id=pk)
-    related_games = Game.objects.filter(genres__in=game_object.genres.all()).exclude(id=pk)
+    game_platform = GamePlatform.objects.get(id=pk)
+    related_games = Game.objects.filter(genres__in=game_platform.genres.all()).exclude(id=pk)
     wishlist = Wishlist.objects.filter(user=request.user).first() if request.user.is_authenticated else None
     active_discounts = Discount.objects.filter(
         start_date__lte=timezone.now().date(),
         end_date__gte=timezone.now().date()
     )
-    sales = Game.objects.filter(discounts__in=active_discounts).distinct()
+    sales = GamePlatform.objects.filter(discounts__in=active_discounts).distinct()
     context = {
-        'game': game_object,
+        'game_platform': game_platform,
         'related_games': related_games,
         'wishlist': wishlist,
         'sales': sales,
     }
     return render(request, 'game_detail.html', context)
+
+
+class GenreModelForm(ModelForm):
+    class Meta:
+        model = Genre
+        fields = '__all__'
+
+
+class GenresCreate(LoginRequiredMixin, CreateView, CreatePopupMixin):
+    template_name = 'genres_create.html'
+    model = Genre
+    form_class = GenreModelForm
+    success_url = reverse_lazy('genres_create')
+    permission_required = 'administration'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['genres'] = Genre.objects.all()
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        return HttpResponse(
+            '<script>'
+            'opener.dismissAddAnotherPopup(window, "%s", "%s");'
+            'opener.refreshGenres();'
+            '</script>' % (self.object.pk, self.object)
+        )
+
+
+class GenreUpdate(LoginRequiredMixin, UpdateView):
+    template_name = 'genres_create.html'
+    model = Genre
+    form_class = GenreModelForm
+    success_url = reverse_lazy('genres_create')
+    permission_required = 'administration'
+
+
+class GameModeModelForm(ModelForm):
+    class Meta:
+        model = GameMode
+        fields = '__all__'
+
+
+class GameModeCreate(LoginRequiredMixin, CreateView, CreatePopupMixin):
+    template_name = 'game_mode_create.html'
+    model = GameMode
+    form_class = GameModeModelForm
+    success_url = reverse_lazy('game_mode_create')
+    permission_required = 'administration'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['game_modes'] = GameMode.objects.all()
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        return HttpResponse(
+            '<script>'
+            'opener.dismissAddAnotherPopup(window, "%s", "%s");'
+            'opener.refreshGameModes();'
+            '</script>' % (self.object.pk, self.object)
+        )
+
+
+class GameModeUpdate(LoginRequiredMixin, UpdateView):
+    template_name = 'game_mode_create.html'
+    model = GameMode
+    success_url = reverse_lazy('game_mode_create')
+    permission_required = 'administration'
+
+
+class DeveloperModelForm(ModelForm):
+    class Meta:
+        model = Developer
+        fields = '__all__'
+
+
+class DeveloperCreate(LoginRequiredMixin, CreateView, CreatePopupMixin):
+    template_name = 'developer_create.html'
+    model = Developer
+    form_class = DeveloperModelForm
+    success_url = reverse_lazy('developer_create')
+    permission_required = 'administration'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['developers'] = Developer.objects.all()
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        return HttpResponse(
+            '<script>'
+            'opener.dismissAddAnotherPopup(window, "%s", "%s");'
+            'opener.refreshDeveloper();'
+            '</script>' % (self.object.pk, self.object)
+        )
+
+
+class DeveloperUpdate(LoginRequiredMixin, UpdateView):
+    template_name = 'developer_create.html'
+    model = Developer
+    form_class = DeveloperModelForm
+    success_url = reverse_lazy('developer_create')
+    permission_required = 'administration'
+
+
+class PublisherModelForm(ModelForm):
+    class Meta:
+        model = Publisher
+        fields = '__all__'
+
+
+class PublisherCreate(LoginRequiredMixin, CreateView, CreatePopupMixin):
+    template_name = 'publisher_create.html'
+    model = Publisher
+    form_class = PublisherModelForm
+    success_url = reverse_lazy('publisher_create')
+    permission_required = 'administration'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['publishers'] = Publisher.objects.all()
+        return context
+
+    def form_valid(self, form):
+        self.object = form.save()
+
+        return HttpResponse(
+            '<script>'
+            'opener.dismissAddAnotherPopup(window, "%s", "%s");'
+            'opener.refreshPublisher();'
+            '</script>' % (self.object.pk, self.object)
+        )
+
+
+class PublisherUpdate(LoginRequiredMixin, UpdateView):
+    template_name = 'publisher_create.html'
+    model = Publisher
+    form_class = PublisherModelForm
+    success_url = reverse_lazy('publisher_create')
+    permission_required = 'administration'
+
+
+class OsModelForm(ModelForm):
+    class Meta:
+        model = OS
+        fields = '__all__'
+
+
+class CPUModelForm(ModelForm):
+    class Meta:
+        model = CPU
+        fields = '__all__'
 
 
 class GamesFilteredByGenreView(View):
@@ -284,23 +518,51 @@ class GamesFilteredByPublisherView(View):
 def cart(request):
     cart, created = Cart.objects.get_or_create(user=request.user)
     cart_items = CartItem.objects.filter(cart=cart)
-    total_price = sum(item.game.price * item.quantity for item in cart_items)
-    return render(request, 'cart.html', {'cart_items': cart_items, 'total_price':total_price})
+    total_price = sum(item.get_total_price() for item in cart_items)
+    return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
+
+
+@login_required
+@require_POST
+def update_cart_item(request, item_id):
+    try:
+        data = json.loads(request.body)
+        new_quantity = int(data.get('quantity'))
+        cart_item = CartItem.objects.get(id=item_id, cart__user=request.user)
+
+        if new_quantity > 0:
+            cart_item.quantity = new_quantity
+            cart_item.save()
+        else:
+            cart_item.delete()
+
+        cart = cart_item.cart
+        total_price = sum(item.get_total_price() for item in CartItem.objects.filter(cart=cart))
+
+        return JsonResponse({
+            'success': True,
+            'new_price': cart_item.get_total_price() if new_quantity > 0 else 0,
+            'new_total_price': total_price
+        })
+    except CartItem.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Item not found in cart.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 
 @login_required
 def add_to_cart(request, pk):
-    game = get_object_or_404(Game, id=pk)
+    game_platform = get_object_or_404(GamePlatform, id=pk)
     cart, created = Cart.objects.get_or_create(user=request.user)
-    cart.add_game(game)
+    cart.add_game(game_platform)
     return redirect('cart')
 
 
 @login_required
 def remove_from_cart(request, pk):
-    game = get_object_or_404(Game, id=pk)
+    game_platform = get_object_or_404(GamePlatform, id=pk)
     cart = get_object_or_404(Cart, user=request.user)
-    cart.remove_game(game)
+    cart.remove_game(game_platform)
     return redirect('cart')
 
 
@@ -313,7 +575,10 @@ def checkout(request):
 
     purchase = Purchase.objects.create(user=request.user)
     for item in cart_items:
-        purchase_item = PurchaseItem.objects.create(purchase=purchase, game=item.game, quantity=item.quantity)
+        purchase_item = PurchaseItem.objects.create(
+            purchase=purchase,
+            game_platform=item.game_platform,
+            quantity=item.quantity)
         if item in cart_items.is_paid:
             purchase_item.is_paid = True
             purchase_item.save()

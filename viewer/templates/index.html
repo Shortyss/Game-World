@@ -6,6 +6,7 @@
         <div class="wishlist">
             <h1 class="section-title">Seznam přání</h1>
             {% if wishlist %}
+                <p><a href="{% url 'wishlist' %}">Zobrazit celý seznam přání</a></p>
                 <div class="game-grid">
                    {% for game in wishlist %}
                     <div class="game-card-wrapper">
@@ -37,7 +38,6 @@
                     </div>
                     {% endfor %}
                 </div>
-                <p><a href="{% url 'wishlist' %}">Zobrazit celý seznam přání</a></p>
             {% else %}
                 <p>Tvůj seznam přání je prázdný.</p>
             {% endif %}
@@ -46,6 +46,7 @@
     <div class="new-games">
         <h1 class="section-title">Novinky</h1>
         {% if new_releases %}
+        <p><a href="{% url 'new_releases' %}">Zobrazit všechny novinky</a></p>
             <div class="game-grid">
                {% for game in new_releases %}
                 <div class="game-card-wrapper">
@@ -77,7 +78,6 @@
                 </div>
                 {% endfor %}
             </div>
-            <p><a href="{% url 'new_releases' %}">Zobrazit všechny novinky</a></p>
         {% else %}
             <p>Momentálně nejsou dostupné žádně novinky.</p>
         {% endif %}
@@ -85,6 +85,7 @@
     <div class="pre-order">
         <h1 class="section-title">Předobjednávky</h1>
         {% if pre_orders %}
+        <p><a href="{% url 'pre_orders' %}">Zobrazit všechny předobjednávky</a></p>
             <div class="game-grid">
                {% for game in pre_orders %}
                 <div class="game-card-wrapper">
@@ -116,7 +117,6 @@
                 </div>
                 {% endfor %}
             </div>
-            <p><a href="{% url 'pre_orders' %}">Zobrazit všechny předobjednávky</a></p>
         {% else %}
             <p>Momentálně nejsou dostupné žádně předobjednávky.</p>
         {% endif %}
@@ -124,6 +124,7 @@
     <div class="top-games">
         <h1 class="section-title">Oblíbené hry</h1>
         {% if bestsellers %}
+        <p><a href="{% url 'bestsellers' %}">Zobrazit všechny nejprodávanější hry</a></p>
             <div class="game-grid">
                {% for game in bestsellers %}
                 <div class="game-card-wrapper">
@@ -155,7 +156,6 @@
                 </div>
                 {% endfor %}
             </div>
-            <p><a href="{% url 'bestsellers' %}">Zobrazit všechny nejprodávanější hry</a></p>
         {% else %}
             <p>Momentálně nejsou dostupné žádně nejprodávanější hry.</p>
         {% endif %}
@@ -163,6 +163,7 @@
     <div class="sale">
         <h1 class="section-title">Akce a slevy</h1>
         {% if sales %}
+        <p><a href="{% url 'sales' %}">Zobrazit všechny akce a slevy</a></p>
             <div class="game-grid">
                {% for game in sales %}
                 <div class="game-card-wrapper">
@@ -199,7 +200,6 @@
                 </div>
                 {% endfor %}
             </div>
-            <p><a href="{% url 'sales' %}">Zobrazit všechny akce a slevy</a></p>
         {% else %}
             <p>Momentálně nemáme žádné akce a slevy.</p>
         {% endif %}

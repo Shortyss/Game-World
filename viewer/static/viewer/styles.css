@@ -291,6 +291,16 @@ a {
     margin: 20px 0;
 }
 
+.original-price {
+    text-decoration: line-through;
+    color: red;
+}
+
+.discounted-price {
+    font-weight: bold;
+    color: #00ff00;
+}
+
 .game-description {
     font-size: 0.9em;
     margin: 10px 0;
@@ -489,3 +499,155 @@ a {
     margin-left: 10px;
 }
 
+/* Cart Styles */
+.cart-container {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    border-radius: 10px;
+    color: #00ff00;
+    width: 80%;
+    margin: 20px auto;
+}
+
+.cart-container h2 {
+    font-family: 'Aquire', sans-serif;
+    font-weight: bold;
+    color: #00ff00;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.cart-container ul {
+    list-style: none;
+    padding: 0;
+}
+
+.cart-item-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 2px solid #00ff00;
+}
+
+.cart-item-info img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-right: 20px;
+}
+
+.cart-item-info p {
+    font-size: 1.1em;
+    color: #00ff00;
+    margin: 0;
+}
+
+.cart-item-info .quantity {
+    font-weight: bold;
+}
+
+.cart-item-info .price {
+    font-weight: bold;
+}
+
+.cart-item-info .original-price {
+    text-decoration: line-through;
+    color: red;
+    margin-right: 10px;
+}
+
+.cart-item-info .discounted-price {
+    font-weight: bold;
+    color: #00ff00;
+}
+
+.cart-item-info form {
+    margin-left: 20px;
+}
+
+.cart-item-info button {
+    background-color: #ff0000;
+    border: 2px solid #990000;
+    color: #ffffff;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border-radius: 5px;
+}
+
+.cart-item-info button:hover {
+    background-color: #cc0000;
+    border-color: #660000;
+}
+
+.total-price {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #00ff00;
+    text-align: right;
+    margin-top: 20px;
+    border-top: 2px solid #00ff00;
+    padding-top: 20px;
+}
+
+.checkout-button {
+    display: block;
+    background-color: #00cc00;
+    border: 2px solid #009900;
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    margin: 20px auto;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border-radius: 5px;
+    width: fit-content;
+}
+
+.checkout-button:hover {
+    background-color: #009900;
+    border-color: #006600;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-btn {
+    background-color: #00cc00;
+    border: 2px solid #009900;
+    color: #ffffff;
+    padding: 5px 10px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border-radius: 5px;
+}
+
+.quantity-btn:hover {
+    background-color: #009900;
+    border-color: #006600;
+}
+
+.quantity-number {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #00ff00;
+}
+
+.popup-container {
+    max-height: 400px;
+    margin: auto;
+    padding: 20px;
+}

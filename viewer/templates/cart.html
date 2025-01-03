@@ -9,19 +9,33 @@
                 {% for item in cart_items %}
                     <li>
                         <div class="cart-item-info">
+                            <img src="{{ item.game.get_images.first.image.url }}" alt="{{ item.game.name }}">
+
                             <div>
                                 <p>{{ item.game.name }}</p>
-                                <p>{{ item.quantity }} ks - {{ item.game.price }} Kč</p>
+                                <div class="quantity-controls">
+                                    <button class="quantity-btn" data-action="decrease" data-item-id="{{ item.id }}">-</button>
+                                    <span class="quantity-number">{{ item.quantity }}</span>
+                                    <button class="quantity-btn" data-action="increase" data-item-id="{{ item.id }}">+</button>
+                                </div>
                             </div>
+                            <div>
+                                {% if item.get_price < item.game.price %}
+                                    <p class="original-price">{{ item.game.price }} Kč za kus</p>
+                                    <p class="discounted-price">{{ item.get_total_price }} Kč za kus</p>
+                                {% else %}
+                                    <p class="game-price">{{ item.get_total_price }} Kč</p>
+                                {% endif %}
+                            </div>
+                            <form action="{% url 'remove_from_cart' item.game.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit">Odstranit</button>
+                            </form>
                         </div>
-                        <form action="{% url 'remove_from_cart' item.game.id %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit">Odstranit</button>
-                        </form>
                     </li>
                 {% endfor %}
             </ul>
-            <p class="total-price">Celková cena: {{ total_price }} Kč</p>
+            <p class="total-price">Celková cena: <span id="total-price">{{ total_price }}</span> Kč</p>
             <a href="{% url 'checkout' %}" class="checkout-button">Pokračovat k platbě</a>
         {% else %}
             <p>Váš košík je prázdný.</p>

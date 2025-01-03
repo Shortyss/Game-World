@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="publisher-create">
+    <div class="left-section">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if form.instance.pk %}Upravit{% else %}Vytvořit{% endif %} vydavatele</button>
+        </form>
+    </div>
+
+    <div class="right-section">
+        <h2>Seznam vydavatelů</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Název</th>
+                    <th>Popis</th>
+                    <th>Datum založení</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for publisher in publishers %}
+                    <tr>
+                        <td>{{ publisher.name }}</td>
+                        <td>{{ publisher.description|default:"N/A" }}</td>
+                        <td>{{ publisher.founded|date:"d.m.Y" }}</td>
+                        <td>
+                            <a href="{% url 'publisher_update' publisher.id %}">Upravit</a>
+                            <a href="{% url 'publisher_delete' publisher.id %}">Smazat</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

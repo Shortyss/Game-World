@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Opravdu chcete smazat záznam pro: "{{ object }}" z databáze?</h1>
+    <form method="post">
+        {% csrf_token %}
+        <input type="submit" value="Potvrdit" class="btn btn-submit">
+        <button type="button" class="btn btn-cancel" onclick="window.history.back();">Zrušit</button>
+    </form>
+{% endblock %}

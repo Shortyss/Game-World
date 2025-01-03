@@ -42,6 +42,8 @@ INSTALLED_APPS = [
 
     'viewer',
     'accounts',
+    'dal',
+    'dal_select2',
 ]
 
 MIDDLEWARE = [

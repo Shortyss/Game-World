@@ -41,9 +41,9 @@ urlpatterns = [
 
     path('wishlist/', wishlist, name='wishlist'),
 
-    path('game/create/', GameCreateView.as_view(), name='game_create'),
-    path('game/update/<pk>/', GameUpdateVIew.as_view(), name='game_update'),
-    path('game/confirm_delete/<pk>/', GameDeleteView.as_view(), name='game_confirm_delete'),
+    path('game/create/', GenericCreateView.as_view(model=Game, form_class=GameModelForm), name='game_create'),
+    path('game/update/<pk>/', GenericUpdateView.as_view(model=Game, form_class=GameModelForm), name='game_update'),
+    path('game/confirm_delete/<pk>/', GenericDeleteView.as_view(model=Game), name='game_confirm_delete'),
     path('wishlist/toggle/<int:game_id>/', toggle_wishlist, name='toggle_wishlist'),
 
     path('games/', GamesView.as_view(), name='games'),
@@ -66,11 +66,38 @@ urlpatterns = [
     path('discounts/', discount_list, name='discount_list'),
     path('discount/add/', add_discount, name='discount_add'),
     path('discounts/edit/<int:pk>/', DiscountUpdateView.as_view(), name='discount_edit'),
-    path('discounts/delete/<int:pk>/', DiscountDeleteView.as_view(), name='discount_delete'),
+    path('discounts/delete/<int:pk>/', GenericDeleteView.as_view(model=Discount), name='discount_delete'),
 
     path('cart/', cart, name='cart'),
     path('cart/add/<pk>/', add_to_cart, name='add_to_cart'),
     path('cart/remove/<pk>/', remove_from_cart, name='remove_from_cart'),
     path('checkout/', checkout, name='checkout'),
+    path('update-cart-item/<int:item_id>/', update_cart_item, name='update_cart_item'),
+
+    path('genres/create/', GenresCreate.as_view(), name='genres_create'),
+    path('genre/update/<pk>/', GenreUpdate.as_view(), name='genre_update'),
+    path('genre/delete/<pk>/', GenericDeleteView.as_view(model=Genre), name='genre_delete'),
+
+    path('genre-autocomplete/', GenreAutocomplete.as_view(), name='genre-autocomplete'),
+
+    path('game-mode/create/', GameModeCreate.as_view(), name='game_mode_create'),
+    path('game-mode/update/<pk>/', GameModeUpdate.as_view(), name='game_mode_update'),
+    path('game-mode/delete/<pk>/', GenericDeleteView.as_view(model=GameMode), name='game_mode_delete'),
+
+    path('developer/create/', DeveloperCreate.as_view(), name='developer_create'),
+    path('developer/update/<pk>/', DeveloperUpdate.as_view(), name='developer_update'),
+    path('developer/delete/<pk>/', GenericDeleteView.as_view(model=Developer), name='developer_delete'),
+
+    path('publisher/create/', PublisherCreate.as_view(), name='publisher_create'),
+    path('publisher/update/<pk>/', PublisherUpdate.as_view(), name='publisher_update'),
+    path('publisher/delete/<pk>/', GenericDeleteView.as_view(model=Publisher), name='publisher_delete'),
+
+    path('os/create/', GenericCreateView.as_view(model=OS, form_class=OsModelForm), name='os_create'),
+    path('os/update/<pk>/', GenericUpdateView.as_view(model=OS, form_class=OsModelForm), name='os_update'),
+    path('os/delete/<pk>/', GenericDeleteView.as_view(model=OS), name='os_delete'),
+
+    path('cpu/create/', GenericCreateView.as_view(model=CPU, form_class=CPUModelForm), name='cpu_create'),
+    path('cpu/update/<pk>/', GenericUpdateView.as_view(model=CPU, form_class=CPUModelForm), name='cpu_update'),
+    path('cpu/delete/<pk>/', GenericDeleteView.as_view(model=CPU), name='cpu_delete'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="developer-create">
+    <div class="left-section">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if form.instance.pk %}Upravit{% else %}Vytvořit{% endif %} vývojáře</button>
+        </form>
+    </div>
+
+    <div class="right-section">
+        <h2>Seznam vývojářů</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Název</th>
+                    <th>Popis</th>
+                    <th>Datum založení</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for developer in developers %}
+                    <tr>
+                        <td>{{ developer.name }}</td>
+                        <td>{{ developer.description|default:"N/A" }}</td>
+                        <td>{{ developer.founded|date:"d.m.Y" }}</td>
+                        <td>
+                            <a href="{% url 'developer_update' developer.id %}">Upravit</a>
+                            <a href="{% url 'developer_delete' developer.id %}">Smazat</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

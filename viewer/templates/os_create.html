@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="os-create">
+    <div class="left-section">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if form.instance.pk %}Upravit{% else %}Vytvořit{% endif %} operační systém</button>
+        </form>
+    </div>
+
+    <div class="right-section">
+        <h2>Seznam operačních systémů</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Název</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for os in oss %}
+                    <tr>
+                        <td>{{ os.name }}</td>
+                        <td>
+                            <a href="{% url 'os_update' os.id %}">Upravit</a>
+                            <a href="{% url 'os_delete' os.id %}">Smazat</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

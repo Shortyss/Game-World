@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="generic-create">
+    <div class="left-section">
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if form.instance.pk %}Upravit{% else %}Vytvořit{% endif %}</button>
+        </form>
+    </div>
+
+    <div class="right-section">
+        <h2>Seznam {{ model_name }}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Název</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in object_list %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>
+                            <a href="{% url update_url_name item.id %}">Upravit</a>
+                            <a href="{% url delete_url_name item.id %}">Smazat</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

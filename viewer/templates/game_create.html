@@ -1,11 +1,17 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block content %}
 <div class="game-create">
     <div class="left-section">
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{ form.as_p }}
+            <table>
+                {{ form }}
+                <script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+                {{ form.media }}
+            </table>
             <button type="submit">{% if form.instance.pk %}Upravit{% else %}Vytvořit{% endif %} hru</button>
             <div class="right-section">
                 {% if form.instance.pk %}

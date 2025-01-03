@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="genres-create">
+    <div class="left-section">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if form.instance.pk %}Upravit{% else %}Vytvořit{% endif %} žánr</button>
+        </form>
+    </div>
+
+    <div class="right-section">
+        <h2>Seznam žánrů</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Název</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for genre in genres %}
+                    <tr>
+                        <td>{{ genre.name }}</td>
+                        <td>
+                            <a href="{% url 'genre_update' genre.id %}">Upravit</a> |
+                            <a href="{% url 'genre_delete' genre.id %}">Smazat</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="game-mode-create">
+    <div class="left-section">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">{% if form.isinstance.pk %}Upravit{% else %}Vytvořit{% endif %} mód</button>
+        </form>
+    </div>
+
+    <div class="right-section">
+        <h2>Seznam herních módů</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Název</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for game_mode in game_modes %}
+                    <tr>
+                        <td>{{ game_mode.name }}</td>
+                        <td>
+                            <a href="{% url 'game_mode_update' game_mode.id %}">Upravit</a>
+                            <a href="{% url 'game_mode_delete' game_mode.id %}">Smazat</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
